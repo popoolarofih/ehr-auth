@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EHR System - Facial Authentication</title>
+  <!-- Main stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Use @vladmandic/face-api from jsDelivr for reliable production support -->
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js"></script>
+  <style>
+    .camera-container {
+      position: relative;
+      margin: 0 auto;
+      width: 640px;
+      height: 480px;
+    }
+    #registerVideo, #registerCanvas, #loginVideo, #loginCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .hidden { display: none; }
+    .loading-spinner {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .auth-section, .registration-section, .ehr-section, .login-section {
+      transition: all 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+      <div class="container">
+        <a class="navbar-brand" href="#"><i class="fa-solid fa-hospital-user"></i>FUNAAB EHR System</a>
+      </div>
+    </nav>
+  
+    <div class="container mt-5">
+      <div class="loading-spinner hidden" id="loadingSpinner">
+        <div class="spinner-border text-light" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+  
+      <div class="row justify-content-center mb-4" id="statusSection">
+        <div class="col-md-8">
+          <div class="alert alert-info" id="statusMessage">
+            Initializing facial recognition system...
+          </div>
+        </div>
+      </div>
+  
+      <!-- Welcome Section -->
+      <div class="auth-section" id="welcomeSection">
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="card shadow">
+              <div class="card-body text-center p-5">
+                <h1 class="card-title mb-4"><i class="fa-solid fa-lock"></i> Welcome to Secure EHR for FUNAAB HEALTH CENTER</h1>
+                <p class="card-text mb-4">Please authenticate yourself using facial recognition to access patient records.</p>
+                <div class="d-flex justify-content-center gap-3">
+                  <button class="btn btn-success btn-lg" id="loginBtn" disabled>
+                    <i class="fa-solid fa-user-check"></i> Login with Face
+                  </button>
+                  <button class="btn btn-secondary btn-lg" id="registerBtn" disabled>
+                    <i class="fa-solid fa-user-plus"></i> Register New User
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Registration Section -->
+      <div class="registration-section hidden" id="registrationSection">
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="card shadow">
+              <div class="card-header bg-success text-white">
+                <h3 class="mb-0"><i class="fa-solid fa-user-plus"></i> Register Your Face</h3>
+              </div>
+              <div class="card-body">
+                <form id="registrationForm" class="mb-4">
+                  <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="employeeId" class="form-label">Employee ID</label>
+                    <input type="text" class="form-control" id="employeeId" required>
+                  </div>
+                  <div class="mb-3">
+                    <label for="accessLevel" class="form-label">Access Level</label>
+                    <select class="form-select" id="accessLevel" required>
+                      <option value="">Select Access Level</option>
+                      <option value="doctor">Doctor</option>
+                      <option value="nurse">Nurse</option>
+                      <option value="admin">Administrator</option>
+                    </select>
+                  </div>
+                </form>
+  
+                <div class="camera-container mb-3">
+                  <video id="registerVideo" autoplay muted playsinline></video>
+                  <canvas id="registerCanvas"></canvas>
+                </div>
+                
+                <div class="text-center">
+                  <button class="btn btn-sucess" id="captureBtn" disabled>
+                    <i class="fa-solid fa-camera"></i> Capture Face
+                  </button>
+                  <button class="btn btn-success hidden" id="saveBtn">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Profile
+                  </button>
+                  <button class="btn btn-secondary" id="backToWelcomeBtn">
+                    <i class="fa-solid fa-arrow-left"></i> Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- Login Section -->
+      <div class="login-section hidden" id="loginSection">
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="card shadow">
+              <div class="card-header  text-white" style="background-color: rgb(2, 92, 2);">
+                <h3 class="mb-0"><i class="fa-solid fa-user-check"></i> Facial Authentication</h3>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-info mb-3">
+                  Please look at the camera to authenticate.
+                </div>
+                
+                <div class="camera-container mb-3">
+                  <video id="loginVideo" autoplay muted playsinline></video>
+                  <canvas id="loginCanvas"></canvas>
+                </div>
+                
+                <div class="text-center">
+                  <div id="authStatus" class="mb-3"></div>
+                  <button class="btn btn-secondary" id="backFromLoginBtn">
+                    <i class="fa-solid fa-arrow-left"></i> Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  
+      <!-- EHR Dashboard Section -->
+      <div class="ehr-section hidden" id="ehrSection">
+        <div class="row">
+          <div class="col-12 mb-4">
+            <div class="card shadow">
+              <div class="card-header text-white d-flex justify-content-between align-items-center" style="background-color: rgb(2, 92, 2);">
+                <h3 class="mb-0"><i class="fa-solid fa-chart-line"></i> EHR Dashboard</h3>
+                <div>
+                  <span id="userInfo" class="me-3"></span>
+                  <button class="btn btn-light btn-sm" id="logoutBtn">
+                    <i class="fa-solid fa-power-off"></i> Logout
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-success">
+                  <h4><i class="fa-solid fa-thumbs-up"></i> Authentication Successful!</h4>
+                  <p>Welcome to the Electronic Health Record system. You now have access to patient data based on your role.</p>
+                </div>
+                
+                <div class="row">
+                  <div class="col-md-4 mb-3">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title"><i class="fa-solid fa-file-medical"></i> Patient Records</h5>
+                        <p class="card-text">Access and manage patient medical records.</p>
+                        <a href="patient-records.html" class="btn btn-sucess">
+                          <i class="fa-solid fa-arrow-right"></i> Access Records
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title"><i class="fa-solid fa-calendar-check"></i> Appointments</h5>
+                        <p class="card-text">View and schedule patient appointments.</p>
+                        <a href="appointments.html" class="btn btn-sucess">
+                          <i class="fa-solid fa-arrow-right"></i> Manage Appointments
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4 mb-3">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title"><i class="fa-solid fa-pills"></i> Prescriptions</h5>
+                        <p class="card-text">Create and manage patient prescriptions.</p>
+                        <a href="prescriptions.html" class="btn btn-sucess">
+                          <i class="fa-solid fa-arrow-right"></i> Manage Prescriptions
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- Firebase SDK -->
+  <script type="module">
+    // Import the functions you need from the SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-analytics.js";
+    import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyD_OKecRD3bFiZBFikhNauAPZRdz-FKp9w",
+  authDomain: "ecommerce-fbaa8.firebaseapp.com",
+  databaseURL: "https://ecommerce-fbaa8-default-rtdb.firebaseio.com",
+  projectId: "ecommerce-fbaa8",
+  storageBucket: "ecommerce-fbaa8.firebasestorage.app",
+  messagingSenderId: "296693502804",
+  appId: "1:296693502804:web:d90e69e72e8983b753aec1",
+  measurementId: "G-NJWZ20S9RM"
+};
+
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const database = getDatabase(app);
+    
+    // Global status functions
+    function updateStatus(message, type = 'info') {
+      const statusMessage = document.getElementById('statusMessage');
+      statusMessage.className = `alert alert-${type}`;
+      statusMessage.textContent = message;
+    }
+
+    function showLoading(show = true) {
+      const loadingSpinner = document.getElementById('loadingSpinner');
+      if (show) {
+        loadingSpinner.classList.remove('hidden');
+      } else {
+        loadingSpinner.classList.add('hidden');
+      }
+    }
+
+    // Initialize the application only when window and all resources are fully loaded
+    window.onload = function() {
+      // Verify that faceapi is available
+      if (typeof faceapi === 'undefined') {
+        updateStatus('Face API library failed to load. Please check your internet connection and refresh the page.', 'danger');
+        return;
+      }
+
+      // DOM Elements
+      const welcomeSection = document.getElementById('welcomeSection');
+      const registrationSection = document.getElementById('registrationSection');
+      const loginSection = document.getElementById('loginSection');
+      const ehrSection = document.getElementById('ehrSection');
+      
+      const loginBtn = document.getElementById('loginBtn');
+      const registerBtn = document.getElementById('registerBtn');
+      const backToWelcomeBtn = document.getElementById('backToWelcomeBtn');
+      const backFromLoginBtn = document.getElementById('backFromLoginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      
+      const registerVideo = document.getElementById('registerVideo');
+      const registerCanvas = document.getElementById('registerCanvas');
+      const loginVideo = document.getElementById('loginVideo');
+      const loginCanvas = document.getElementById('loginCanvas');
+      
+      const captureBtn = document.getElementById('captureBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const authStatus = document.getElementById('authStatus');
+      const userInfo = document.getElementById('userInfo');
+
+      // Global variables
+      let isModelLoaded = false;
+      let faceMatcher = null;
+      let capturedDescriptor = null;
+      let registeredUsers = [];
+      let currentStream = null;
+      let loginCheckInterval = null;
+
+      // Function to load models with multiple path options
+      async function loadModelWithRetry(modelType, attempts = 3) {
+        // Updated possiblePaths includes local models and the CDN from @vladmandic/face-api
+        const possiblePaths = [
+          './models',
+          'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
+        ];
+
+        let lastError = null;
+        
+        for (const basePath of possiblePaths) {
+          for (let i = 0; i < attempts; i++) {
+            try {
+              switch(modelType) {
+                case 'detector':
+                  await faceapi.nets.tinyFaceDetector.loadFromUri(basePath);
+                  break;
+                case 'landmark':
+                  await faceapi.nets.faceLandmark68TinyNet.loadFromUri(basePath);
+                  break;
+                case 'recognition':
+                  await faceapi.nets.faceRecognitionNet.loadFromUri(basePath);
+                  break;
+              }
+              console.log(`Successfully loaded ${modelType} model from ${basePath}`);
+              return true;
+            } catch (error) {
+              lastError = error;
+              console.warn(`Attempt ${i+1} failed to load ${modelType} model from ${basePath}:`, error);
+            }
+          }
+        }
+        
+        throw lastError || new Error(`Failed to load ${modelType} model after multiple attempts`);
+      }
+
+      // Load face-api models with robust error handling
+      async function loadModels() {
+        updateStatus('Loading facial recognition models...', 'info');
+        showLoading(true);
+        
+        try {
+          await loadModelWithRetry('detector');
+          updateStatus('Detector model loaded. Loading facial landmarks...', 'info');
+          
+          await loadModelWithRetry('landmark');
+          updateStatus('Landmark model loaded. Loading recognition model...', 'info');
+          
+          await loadModelWithRetry('recognition');
+          
+          isModelLoaded = true;
+          updateStatus('All models loaded successfully!', 'success');
+          
+          // Load registered users from Firebase
+          await loadRegisteredUsers();
+          
+          // Enable buttons
+          loginBtn.disabled = false;
+          registerBtn.disabled = false;
+          captureBtn.disabled = false;
+          
+        } catch (error) {
+          console.error('Error loading models:', error);
+          updateStatus('Failed to load facial recognition models. Please check your internet connection and ensure models are properly hosted.', 'danger');
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      // Load registered users from Firebase
+      async function loadRegisteredUsers() {
+        try {
+          showLoading(true);
+          updateStatus('Loading user database...', 'info');
+          
+          const dbRef = ref(database);
+          const snapshot = await get(child(dbRef, 'users'));
+          
+          if (snapshot.exists()) {
+            registeredUsers = Object.values(snapshot.val());
+            createFaceMatcher();
+            updateStatus(`User database loaded. ${registeredUsers.length} registered users found.`, 'success');
+          } else {
+            updateStatus('No registered users found. Please register first.', 'info');
+          }
+        } catch (error) {
+          console.error('Error loading users from Firebase:', error);
+          updateStatus('Error connecting to user database. Please try again later.', 'danger');
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      // Create face matcher from registered users
+      function createFaceMatcher() {
+        if (registeredUsers.length > 0) {
+          try {
+            const labeledDescriptors = registeredUsers.map(user => {
+              return new faceapi.LabeledFaceDescriptors(
+                user.username,
+                [new Float32Array(user.faceDescriptor)]
+              );
+            });
+            faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+          } catch (error) {
+            console.error('Error creating face matcher:', error);
+            updateStatus('Error creating face recognition database. Please try registering users again.', 'danger');
+          }
+        }
+      }
+
+      // Start video stream with timeout and error handling
+      async function startVideo(videoElement) {
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+        }
+        
+        try {
+          showLoading(true);
+          updateStatus('Accessing camera...', 'info');
+          
+          const getUserMediaPromise = navigator.mediaDevices.getUserMedia({
+            video: { 
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: "user"
+            }
+          });
+          
+          const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Camera access timeout')), 10000);
+          });
+          
+          currentStream = await Promise.race([getUserMediaPromise, timeoutPromise]);
+          videoElement.srcObject = currentStream;
+          
+          await new Promise((resolve, reject) => {
+            const timeoutId = setTimeout(() => {
+              reject(new Error('Video metadata loading timeout'));
+            }, 5000);
+            
+            videoElement.onloadedmetadata = () => {
+              clearTimeout(timeoutId);
+              resolve();
+            };
+            
+            if (videoElement.readyState >= 2) {
+              clearTimeout(timeoutId);
+              resolve();
+            }
+          });
+          
+          await videoElement.play();
+          updateStatus('Camera connected successfully', 'success');
+          showLoading(false);
+          return true;
+          
+        } catch (error) {
+          console.error('Error accessing camera:', error);
+          let errorMessage = 'Error accessing camera. ';
+          
+          if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMessage += 'Camera access was denied. Please allow camera access in your browser settings.';
+          } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMessage += 'No camera detected. Please connect a camera and try again.';
+          } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMessage += 'Camera is in use by another application. Please close other applications using the camera.';
+          } else if (error.message === 'Camera access timeout') {
+            errorMessage += 'Camera access timed out. Please check your camera connection and try again.';
+          } else {
+            errorMessage += 'Please check browser permissions and try again.';
+          }
+          
+          updateStatus(errorMessage, 'danger');
+          showLoading(false);
+          return Promise.reject(error);
+        }
+      }
+
+      // Stop video stream
+      function stopVideo() {
+        if (currentStream) {
+          currentStream.getTracks().forEach(track => track.stop());
+          currentStream = null;
+        }
+        
+        if (loginCheckInterval) {
+          clearInterval(loginCheckInterval);
+          loginCheckInterval = null;
+        }
+      }
+
+      // Navigate to section
+      function navigateTo(section) {
+        welcomeSection.classList.add('hidden');
+        registrationSection.classList.add('hidden');
+        loginSection.classList.add('hidden');
+        ehrSection.classList.add('hidden');
+        
+        stopVideo();
+        
+        switch(section) {
+          case 'welcome':
+            welcomeSection.classList.remove('hidden');
+            updateStatus('Ready to authenticate', 'info');
+            break;
+          case 'register':
+            registrationSection.classList.remove('hidden');
+            startVideo(registerVideo).catch(() => {
+              navigateTo('welcome');
+            });
+            break;
+          case 'login':
+            loginSection.classList.remove('hidden');
+            startVideo(loginVideo)
+              .then(() => {
+                startFaceAuthentication();
+              })
+              .catch(() => {
+                navigateTo('welcome');
+              });
+            break;
+          case 'ehr':
+            ehrSection.classList.remove('hidden');
+            updateStatus('Successfully authenticated and logged in', 'success');
+            break;
+        }
+      }
+
+      // Capture face for registration
+      async function captureFace() {
+        if (!isModelLoaded) {
+          updateStatus('Face recognition models are not loaded yet. Please wait.', 'warning');
+          return;
+        }
+        
+        try {
+          showLoading(true);
+          captureBtn.disabled = true;
+          updateStatus('Analyzing face...', 'info');
+          
+          if (!registerVideo.videoWidth || !registerVideo.videoHeight) {
+            throw new Error('Video stream not properly initialized');
+          }
+          
+          const detections = await faceapi.detectSingleFace(
+            registerVideo, 
+            new faceapi.TinyFaceDetectorOptions()
+          ).withFaceLandmarks(true).withFaceDescriptor();
+          
+          if (!detections) {
+            updateStatus('No face detected. Please position yourself properly in front of the camera and try again.', 'warning');
+            captureBtn.disabled = false;
+            showLoading(false);
+            return;
+          }
+          
+          const displaySize = { width: registerVideo.videoWidth, height: registerVideo.videoHeight };
+          faceapi.matchDimensions(registerCanvas, displaySize);
+          
+          const resizedDetections = faceapi.resizeResults(detections, displaySize);
+          registerCanvas.getContext('2d').clearRect(0, 0, registerCanvas.width, registerCanvas.height);
+          faceapi.draw.drawDetections(registerCanvas, resizedDetections);
+          faceapi.draw.drawFaceLandmarks(registerCanvas, resizedDetections);
+          
+          capturedDescriptor = Array.from(detections.descriptor);
+          saveBtn.classList.remove('hidden');
+          updateStatus('Face captured successfully! Click "Save Profile" to complete registration.', 'success');
+          
+        } catch (error) {
+          console.error('Error capturing face:', error);
+          updateStatus('Error capturing face: ' + error.message, 'danger');
+        } finally {
+          showLoading(false);
+          captureBtn.disabled = false;
+        }
+      }
+
+      // Save registered user to Firebase
+      async function saveRegisteredUser() {
+        const username = document.getElementById('username').value;
+        const employeeId = document.getElementById('employeeId').value;
+        const accessLevel = document.getElementById('accessLevel').value;
+        
+        if (!username || !employeeId || !accessLevel) {
+          updateStatus('Please fill out all fields', 'warning');
+          return;
+        }
+        
+        if (!capturedDescriptor) {
+          updateStatus('Please capture your face first', 'warning');
+          return;
+        }
+        
+        // Check if username already exists
+        const existingUser = registeredUsers.find(user => user.username === username);
+        if (existingUser) {
+          updateStatus('Username already exists. Please choose a different username.', 'warning');
+          return;
+        }
+        
+        const newUser = {
+          username,
+          employeeId,
+          accessLevel,
+          faceDescriptor: capturedDescriptor,
+          registeredAt: new Date().toISOString()
+        };
+        
+        try {
+          showLoading(true);
+          updateStatus('Saving user profile to database...', 'info');
+          
+          // Save to Firebase
+          await set(ref(database, 'users/' + username), newUser);
+          
+          // Update local array
+          registeredUsers.push(newUser);
+          createFaceMatcher();
+          
+          updateStatus('Registration successful! You can now log in with facial recognition.', 'success');
+          document.getElementById('registrationForm').reset();
+          registerCanvas.getContext('2d').clearRect(0, 0, registerCanvas.width, registerCanvas.height);
+          capturedDescriptor = null;
+          saveBtn.classList.add('hidden');
+          
+          setTimeout(() => {
+            navigateTo('welcome');
+          }, 2000);
+          
+        } catch (error) {
+          console.error('Error saving user to Firebase:', error);
+          updateStatus('Error saving user profile to database: ' + error.message, 'danger');
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      // Start face authentication
+      function startFaceAuthentication() {
+        if (!isModelLoaded) {
+          updateStatus('Face recognition models are not loaded yet. Please wait.', 'warning');
+          return;
+        }
+        
+        if (!faceMatcher || registeredUsers.length === 0) {
+          authStatus.innerHTML = '<div class="alert alert-warning">No registered users. Please register first.</div>';
+          return;
+        }
+        
+        authStatus.innerHTML = '<div class="alert alert-info">Scanning for face...</div>';
+        
+        loginCheckInterval = setInterval(async () => {
+          try {
+            if (loginVideo.paused || loginVideo.ended || !loginVideo.videoWidth) {
+              return;
+            }
+            
+            const detections = await faceapi.detectSingleFace(
+              loginVideo, 
+              new faceapi.TinyFaceDetectorOptions()
+            ).withFaceLandmarks(true).withFaceDescriptor();
+            
+            if (!detections) {
+              return;
+            }
+            
+            const displaySize = { width: loginVideo.videoWidth, height: loginVideo.videoHeight };
+            faceapi.matchDimensions(loginCanvas, displaySize);
+            
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            loginCanvas.getContext('2d').clearRect(0, 0, loginCanvas.width, loginCanvas.height);
+            faceapi.draw.drawDetections(loginCanvas, resizedDetections);
+            faceapi.draw.drawFaceLandmarks(loginCanvas, resizedDetections);
+            
+            const match = faceMatcher.findBestMatch(detections.descriptor);
+            
+            if (match.label !== 'unknown') {
+              clearInterval(loginCheckInterval);
+              loginCheckInterval = null;
+              
+              authStatus.innerHTML = '<div class="alert alert-success">Authentication successful!</div>';
+              
+              const authenticatedUser = registeredUsers.find(user => user.username === match.label);
+              userInfo.textContent = `${authenticatedUser.username} (${authenticatedUser.accessLevel})`;
+              
+              // Log successful authentication
+              await set(ref(database, 'auth_logs/' + Date.now()), {
+                username: authenticatedUser.username,
+                accessLevel: authenticatedUser.accessLevel,
+                timestamp: new Date().toISOString()
+              });
+              
+              setTimeout(() => {
+                navigateTo('ehr');
+              }, 1500);
+            }
+            
+          } catch (error) {
+            console.error('Error during face authentication:', error);
+          }
+        }, 1000);
+      }
+
+      // Event listeners
+      loginBtn.addEventListener('click', () => {
+        if (!isModelLoaded) {
+          updateStatus('Face recognition models are still loading. Please wait a moment and try again.', 'warning');
+          return;
+        }
+        navigateTo('login');
+      });
+      
+      registerBtn.addEventListener('click', () => {
+        if (!isModelLoaded) {
+          updateStatus('Face recognition models are still loading. Please wait a moment and try again.', 'warning');
+          return;
+        }
+        navigateTo('register');
+      });
+      
+      backToWelcomeBtn.addEventListener('click', () => navigateTo('welcome'));
+      backFromLoginBtn.addEventListener('click', () => navigateTo('welcome'));
+      logoutBtn.addEventListener('click', () => navigateTo('welcome'));
+      
+      captureBtn.addEventListener('click', captureFace);
+      saveBtn.addEventListener('click', saveRegisteredUser);
+      
+      // Make functions available globally for event handlers
+      window.navigateTo = navigateTo;
+      
+      // Kick off model loading
+      loadModels();
+    };
+  </script>
+</body>
+</html>

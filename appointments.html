@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Appointments - EHR System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { padding-top: 70px; }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><i class="fa-solid fa-hospital-user"></i> EHR System</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="patient-records.html"><i class="fa-solid fa-file-medical"></i> Records</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="appointments.html"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="prescriptions.html"><i class="fa-solid fa-pills"></i> Prescriptions</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="mt-5"><i class="fa-solid fa-calendar-check"></i> Appointments</h1>
+    <p class="lead">Schedule an appointment and view existing appointments below.</p>
+
+    <!-- Form to Add New Appointment -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="fa-solid fa-plus"></i> Add New Appointment
+      </div>
+      <div class="card-body">
+        <form id="appointmentForm">
+          <div class="mb-3">
+            <label for="patientName" class="form-label">Patient/Student Name</label>
+            <input type="text" class="form-control" id="patientName" required />
+          </div>
+          <div class="mb-3">
+            <label for="doctorName" class="form-label">Doctor's Name</label>
+            <input type="text" class="form-control" id="doctorName" required />
+          </div>
+          <div class="mb-3">
+            <label for="appointmentDate" class="form-label">Date</label>
+            <input type="date" class="form-control" id="appointmentDate" required />
+          </div>
+          <div class="mb-3">
+            <label for="appointmentTime" class="form-label">Time</label>
+            <input type="time" class="form-control" id="appointmentTime" required />
+          </div>
+          <button type="submit" class="btn btn-success">
+            <i class="fa-solid fa-floppy-disk"></i> Save Appointment
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Appointment List -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa-solid fa-table"></i> All Appointments
+      </div>
+      <div class="card-body">
+        <table class="table table-striped" id="appointmentsTable">
+          <thead>
+            <tr>
+              <th>Appointment ID</th>
+              <th>Patient/Student</th>
+              <th>Doctor</th>
+              <th>Date</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be inserted here dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase SDKs and Application Script -->
+  <script type="module">
+    // Import necessary Firebase functions
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_OKecRD3bFiZBFikhNauAPZRdz-FKp9w",
+      authDomain: "ecommerce-fbaa8.firebaseapp.com",
+      databaseURL: "https://ecommerce-fbaa8-default-rtdb.firebaseio.com",
+      projectId: "ecommerce-fbaa8",
+      storageBucket: "ecommerce-fbaa8.firebasestorage.app",
+      messagingSenderId: "296693502804",
+      appId: "1:296693502804:web:d90e69e72e8983b753aec1",
+      measurementId: "G-NJWZ20S9RM"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Reference for appointments node
+    const appointmentsRef = ref(database, "appointments");
+
+    // Add new appointment record
+    const appointmentForm = document.getElementById("appointmentForm");
+    appointmentForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const patientName = document.getElementById("patientName").value.trim();
+      const doctorName = document.getElementById("doctorName").value.trim();
+      const appointmentDate = document.getElementById("appointmentDate").value;
+      const appointmentTime = document.getElementById("appointmentTime").value;
+
+      const newAppointment = {
+        patientName,
+        doctorName,
+        appointmentDate,
+        appointmentTime,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        const newAppRef = push(appointmentsRef);
+        await set(newAppRef, newAppointment);
+        alert("Appointment added successfully!");
+        appointmentForm.reset();
+      } catch (error) {
+        console.error("Error adding appointment:", error);
+        alert("Failed to add appointment: " + error.message);
+      }
+    });
+
+    // Function to render appointments in the table
+    function renderAppointments(data) {
+      const tbody = document.querySelector("#appointmentsTable tbody");
+      tbody.innerHTML = ""; // Clear previous data
+      data.forEach(appointment => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${appointment.key}</td>
+          <td>${appointment.patientName}</td>
+          <td>${appointment.doctorName}</td>
+          <td>${appointment.appointmentDate}</td>
+          <td>${appointment.appointmentTime}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Listen for changes in the appointments node and update the table
+    onValue(appointmentsRef, (snapshot) => {
+      const data = snapshot.val();
+      const appointmentsArray = [];
+      for (const key in data) {
+        appointmentsArray.push({ key, ...data[key] });
+      }
+      // Optional: sort appointments by creation date (descending)
+      appointmentsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      renderAppointments(appointmentsArray);
+    });
+  </script>
+</body>
+</html>

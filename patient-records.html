@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Patient Records - EHR System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { padding-top: 70px; }
+  </style>
+</head>
+<body>
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><i class="fa-solid fa-hospital-user"></i> EHR System</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="patient-records.html"><i class="fa-solid fa-file-medical"></i> Records</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="appointments.html"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="prescriptions.html"><i class="fa-solid fa-pills"></i> Prescriptions</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="mt-5"><i class="fa-solid fa-file-medical"></i> Patient Records</h1>
+    <p class="lead">Add new patient records and view all stored records below.</p>
+
+    <!-- Form to Add New Record -->
+    <div class="card mb-4">
+      <div class="card-header">
+        <i class="fa-solid fa-plus"></i> Add New Record
+      </div>
+      <div class="card-body">
+        <form id="recordForm">
+          <div class="mb-3">
+            <label for="patientName" class="form-label">Patient Name</label>
+            <input type="text" class="form-control" id="patientName" required />
+          </div>
+          <div class="mb-3">
+            <label for="dateOfVisit" class="form-label">Date of Visit</label>
+            <input type="date" class="form-control" id="dateOfVisit" required />
+          </div>
+          <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" required>
+              <option value="">Select Status</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-success">
+            <i class="fa-solid fa-floppy-disk"></i> Save Record
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Table to Display Records -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa-solid fa-table"></i> All Records
+      </div>
+      <div class="card-body">
+        <table class="table table-striped" id="recordsTable">
+          <thead>
+            <tr>
+              <th>Record ID</th>
+              <th>Patient Name</th>
+              <th>Date of Visit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Data will be inserted here dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Firebase SDKs -->
+  <script type="module">
+    // Import the functions you need from the SDKs
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, push, set, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_OKecRD3bFiZBFikhNauAPZRdz-FKp9w",
+      authDomain: "ecommerce-fbaa8.firebaseapp.com",
+      databaseURL: "https://ecommerce-fbaa8-default-rtdb.firebaseio.com",
+      projectId: "ecommerce-fbaa8",
+      storageBucket: "ecommerce-fbaa8.firebasestorage.app",
+      messagingSenderId: "296693502804",
+      appId: "1:296693502804:web:d90e69e72e8983b753aec1",
+      measurementId: "G-NJWZ20S9RM"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // References
+    const recordsRef = ref(database, "patientRecords");
+
+    // Function to add a record
+    const recordForm = document.getElementById("recordForm");
+    recordForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const patientName = document.getElementById("patientName").value.trim();
+      const dateOfVisit = document.getElementById("dateOfVisit").value;
+      const status = document.getElementById("status").value;
+
+      // Create an object for the new record
+      const newRecord = {
+        patientName,
+        dateOfVisit,
+        status,
+        createdAt: new Date().toISOString()
+      };
+
+      try {
+        // Use push to generate a unique key for each record
+        const newRecordRef = push(recordsRef);
+        await set(newRecordRef, newRecord);
+        alert("Record added successfully!");
+        recordForm.reset();
+      } catch (error) {
+        console.error("Error adding record:", error);
+        alert("Failed to add record: " + error.message);
+      }
+    });
+
+    // Function to render records in the table
+    function renderRecords(data) {
+      const tbody = document.querySelector("#recordsTable tbody");
+      tbody.innerHTML = ""; // Clear existing table data
+      data.forEach(record => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${record.key}</td>
+          <td>${record.patientName}</td>
+          <td>${record.dateOfVisit}</td>
+          <td><span class="badge bg-${record.status === 'Completed' ? 'success' : record.status === 'In Progress' ? 'warning' : 'primary'}">
+            ${record.status}
+          </span></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Listen for changes in the patientRecords node and update table
+    onValue(recordsRef, (snapshot) => {
+      const recordsData = snapshot.val();
+      const recordsArray = [];
+      for (const key in recordsData) {
+        recordsArray.push({ key, ...recordsData[key] });
+      }
+      // Optionally sort by createdAt (descending)
+      recordsArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      renderRecords(recordsArray);
+    });
+  </script>
+</body>
+</html>

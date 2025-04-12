@@ -1,0 +1,190 @@
+/* Custom styles for EHR Facial Authentication System */
+
+/* Global Styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Auth Containers */
+.auth-container {
+    max-width: 640px;
+    margin: 0 auto;
+}
+
+/* Camera Elements */
+.camera-container {
+    position: relative;
+    margin: 0 auto;
+    width: 640px;
+    height: 480px;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+#video, #canvas, #registerVideo, #registerCanvas, #loginVideo, #loginCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+#canvas {
+    z-index: 10;
+}
+
+/* EHR Dashboard */
+.dashboard-card {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+}
+
+.dashboard-card .card-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+/* User profile section */
+.user-profile {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 8px;
+}
+
+.user-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 12px;
+}
+
+/* Status indicators */
+.status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 6px;
+    display: inline-block;
+}
+
+.status-active {
+    background-color: #28a745;
+}
+
+.status-inactive {
+    background-color: #dc3545;
+}
+
+/* Auth buttons */
+.auth-btn {
+    min-width: 120px;
+}
+
+/* Loading animations */
+.loading-spinner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Access level badges */
+.access-badge {
+    font-size: 0.8rem;
+    padding: 4px 8px;
+}
+
+.access-doctor {
+    background-color: #0d6efd;
+}
+
+.access-nurse {
+    background-color: #198754;
+}
+
+.access-admin {
+    background-color: #6c757d;
+}
+
+/* Transitions */
+.section-transition {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.section-visible {
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .camera-container {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/3;
+    }
+    
+    .auth-container {
+        width: 100%;
+        padding: 0 15px;
+    }
+}
+
+/* Face detection box */
+.detection-box {
+    border: 2px solid #0d6efd;
+    position: absolute;
+    box-shadow: 0 0 10px rgba(13, 110, 253, 0.5);
+}
+
+/* Auth status messages */
+.auth-status {
+    transition: all 0.3s ease;
+}
+
+.auth-attempting {
+    background-color: #fff3cd;
+    border-color: #ffecb5;
+    color: #664d03;
+}
+
+.auth-success {
+    background-color: #d1e7dd;
+    border-color: #badbcc;
+    color: #0f5132;
+}
+
+.auth-failed {
+    background-color: #f8d7da;
+    border-color: #f5c2c7;
+    color: #842029;
+}
+
+/* Hidden elements */
+.hidden {
+    display: none !important;
+}

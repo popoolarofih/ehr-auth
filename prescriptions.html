@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Prescriptions - EHR System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    body { padding-top: 70px; }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
+    <div class="container">
+      <a class="navbar-brand" href="index.html"><i class="fa-solid fa-hospital-user"></i> EHR System</a>
+      <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="patient-records.html"><i class="fa-solid fa-file-medical"></i> Records</a></li>
+          <li class="nav-item"><a class="nav-link" href="appointments.html"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
+          <li class="nav-item"><a class="nav-link active" href="prescriptions.html"><i class="fa-solid fa-pills"></i> Prescriptions</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container">
+    <h1 class="mt-5"><i class="fa-solid fa-pills"></i> Prescriptions</h1>
+    <p class="lead">Search and view prescriptions for a patient.</p>
+
+    <!-- Search Form -->
+    <form id="searchForm" class="mb-4">
+      <div class="row g-3 align-items-end">
+        <div class="col-sm-6">
+          <label for="searchPatient" class="form-label">Enter Patient Name</label>
+          <input type="text" id="searchPatient" class="form-control" required />
+        </div>
+        <div class="col-sm-auto">
+          <button type="submit" class="btn btn-success"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
+        </div>
+      </div>
+    </form>
+
+    <!-- Prescription Results -->
+    <div class="card">
+      <div class="card-header">
+        <i class="fa-solid fa-file-prescription"></i> Prescriptions List
+      </div>
+      <ul class="list-group list-group-flush" id="prescriptionList">
+        <!-- Dynamically loaded prescriptions will appear here -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Firebase + Bootstrap -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyD_OKecRD3bFiZBFikhNauAPZRdz-FKp9w",
+      authDomain: "ecommerce-fbaa8.firebaseapp.com",
+      databaseURL: "https://ecommerce-fbaa8-default-rtdb.firebaseio.com",
+      projectId: "ecommerce-fbaa8",
+      storageBucket: "ecommerce-fbaa8.appspot.com",
+      messagingSenderId: "296693502804",
+      appId: "1:296693502804:web:d90e69e72e8983b753aec1",
+      measurementId: "G-NJWZ20S9RM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const searchForm = document.getElementById("searchForm");
+    const prescriptionList = document.getElementById("prescriptionList");
+
+    searchForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const patientName = document.getElementById("searchPatient").value.trim().toLowerCase();
+      fetchPrescriptions(patientName);
+    });
+
+    function fetchPrescriptions(patientName) {
+      const prescriptionsRef = ref(db, "prescriptions");
+      onValue(prescriptionsRef, (snapshot) => {
+        const data = snapshot.val();
+        prescriptionList.innerHTML = ""; // Clear previous
+        let found = false;
+
+        for (const key in data) {
+          const prescription = data[key];
+          if (prescription.patientName.toLowerCase() === patientName) {
+            found = true;
+            const item = document.createElement("li");
+            item.className = "list-group-item";
+            item.innerHTML = `<strong>${prescription.medication}</strong> for ${prescription.patientName} (by Dr. ${prescription.doctorName})`;
+            prescriptionList.appendChild(item);
+          }
+        }
+
+        if (!found) {
+          prescriptionList.innerHTML = `<li class="list-group-item text-danger">No prescriptions found for "${patientName}".</li>`;
+        }
+      }, {
+        onlyOnce: true
+      });
+    }
+  </script>
+</body>
+</html>
