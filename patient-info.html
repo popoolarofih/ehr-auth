@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Patient Info & Records – EHR System</title>
+  <title>Patient Info - FUNAAB EHR System</title>
+
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <!-- Font Awesome -->
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
   <style>
     body {
       padding-top: 70px;
@@ -15,25 +17,53 @@
       flex-direction: column;
       min-height: 100vh;
     }
-    .content { flex: 1 0 auto; }
-    footer { flex-shrink: 0; }
-    .loading-spinner { display: flex; justify-content: center; margin: 2rem 0; }
+    .loading-spinner {
+      display: flex;
+      justify-content: center;
+      margin: 50px 0;
+    }
+    .no-records {
+      text-align: center;
+      margin: 50px 0;
+      color: #666;
+    }
+    .content {
+      flex: 1 0 auto;
+    }
+    footer {
+      flex-shrink: 0;
+      background-color: #198754;
+      color: white;
+      padding: 2rem 0;
+      margin-top: 3rem;
+    }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
+  <!-- Navigation Bar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
     <div class="container">
       <a class="navbar-brand" href="#"><i class="fa-solid fa-hospital-user"></i> FUNAAB EHR System</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="nav">
+      <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-          <li class="nav-item"><a class="nav-link" href="patient-records.html"><i class="fa-solid fa-file-medical"></i> Records</a></li>
-          <li class="nav-item"><a class="nav-link" href="appointments.html"><i class="fa-solid fa-calendar-check"></i> Appointments</a></li>
-          <li class="nav-item"><a class="nav-link active" href="#"><i class="fa-solid fa-user-injured"></i> My Profile</a></li>
-          <li class="nav-item"><a class="nav-link" href="prescriptions.html"><i class="fa-solid fa-pills"></i> Prescriptions</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="patient-records.html">
+              <i class="fa-solid fa-file-medical"></i> Records
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="appointments.html">
+              <i class="fa-solid fa-calendar-check"></i> Appointments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="prescriptions.html">
+              <i class="fa-solid fa-pills"></i> Prescriptions
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -42,195 +72,236 @@
   <!-- Main Content -->
   <div class="content">
     <div class="container">
+      <h1 class="mb-4"><i class="fa-solid fa-user-injured"></i> Patient Information</h1>
 
       <!-- Patient Info Form -->
-      <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0"><i class="fa-solid fa-user-injured"></i> Update Patient Record</h5>
+      <form id="patientForm" class="mb-5">
+        <input type="hidden" id="patientId" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="patientName" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="patientName" required>
+          </div>
+          <div class="col-md-6">
+            <label for="age" class="form-label">Age</label>
+            <input type="number" class="form-control" id="age" required>
+          </div>
+          <div class="col-md-6">
+            <label for="gender" class="form-label">Gender</label>
+            <select class="form-select" id="gender" required>
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="contact" class="form-label">Contact Info</label>
+            <input type="text" class="form-control" id="contact">
+          </div>
+          <div class="col-12">
+            <label for="medicalHistory" class="form-label">Medical History</label>
+            <textarea class="form-control" id="medicalHistory" rows="3"></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-success">
+              <i class="fa-solid fa-save"></i> Save Patient Info
+            </button>
+          </div>
         </div>
-        <div class="card-body">
-          <form id="patientForm">
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label for="fullName" class="form-label">Full Name</label>
-                <input type="text" id="fullName" class="form-control" required />
-              </div>
-              <div class="col-md-3">
-                <label for="age" class="form-label">Age</label>
-                <input type="number" id="age" class="form-control" required />
-              </div>
-              <div class="col-md-3">
-                <label for="gender" class="form-label">Gender</label>
-                <select id="gender" class="form-select" required>
-                  <option value="">Select…</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="col-12">
-                <label for="address" class="form-label">Address</label>
-                <input type="text" id="address" class="form-control" required />
-              </div>
-              <div class="col-12">
-                <label for="medicalHistory" class="form-label">Medical History</label>
-                <textarea id="medicalHistory" class="form-control" rows="4"></textarea>
-              </div>
-              <div class="col-12">
-                <label for="recordUpload" class="form-label">Upload Supporting Document</label>
-                <input type="file" id="recordUpload" class="form-control" accept=".pdf,.jpg,.png" />
-              </div>
-            </div>
-            <div class="mt-3 text-end">
-              <button type="submit" class="btn btn-success">
-                <i class="fa-solid fa-floppy-disk"></i> Save Changes
-              </button>
-            </div>
-          </form>
-          <div id="formStatus" class="mt-2"></div>
+      </form>
+
+      <!-- Loading Spinner -->
+      <div id="loadingSpinner" class="loading-spinner d-none">
+        <div class="spinner-border text-success" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
 
-      <!-- Prescription List for This Patient -->
-      <div class="card">
-        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-          <h5 class="mb-0"><i class="fa-solid fa-pills"></i> My Prescriptions</h5>
-        </div>
-        <div class="card-body">
-          <div id="prescLoading" class="loading-spinner">
-            <div class="spinner-border text-success" role="status"><span class="visually-hidden">Loading...</span></div>
-          </div>
-          <div id="noPrescriptions" class="text-center text-muted d-none">
-            <i class="fa-solid fa-folder-open fa-2x mb-2"></i>
-            <p>No prescriptions found.</p>
-          </div>
-          <div class="table-responsive d-none" id="prescTableWrapper">
-            <table class="table table-striped">
-              <thead class="table-success">
-                <tr>
-                  <th>Date</th>
-                  <th>Doctor</th>
-                  <th>Medication</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody id="prescBody"></tbody>
-            </table>
-          </div>
-        </div>
+      <!-- No Records Message -->
+      <div id="noPrescriptions" class="no-records d-none">
+        <i class="fa-solid fa-folder-open fa-3x mb-3"></i>
+        <h4>No prescriptions found for this patient</h4>
+      </div>
+
+      <!-- Prescriptions Table -->
+      <h2 class="mt-5 mb-3">Patient Prescriptions</h2>
+      <div class="table-responsive">
+        <table id="prescriptionsTable" class="table table-striped table-hover">
+          <thead class="table-success">
+            <tr>
+              <th>Medication</th>
+              <th>Doctor</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="prescriptionsData"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
   <!-- Footer -->
-  <footer class="bg-success text-white py-4 mt-4">
-    <div class="container text-center">
-      &copy; 2025 FUNAAB Electronic Health Record System. All rights reserved.
+  <footer class="bg-success text-white text-center py-4">
+    <div class="container">
+      <p class="mb-0">&copy; 2025 FUNAAB EHR System. All rights reserved.</p>
     </div>
   </footer>
 
+  <!-- Prescription Details Modal -->
+  <div class="modal fade" id="prescriptionDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title">Prescription Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h5 id="modalPatientName" class="card-title"></h5>
+          <p class="text-muted">Prescribed by <span id="modalDoctorName"></span> on <span id="modalPrescribedDate"></span></p>
+          <hr>
+          <h6>Medication:</h6>
+          <p id="modalMedication" class="card-text"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-    // Database SDK: only DB exports
-    import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
-    // Storage SDK: uploadBytes + getDownloadURL
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-storage.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      query,
+      equalTo,
+      orderByChild
+    } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
 
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyD_OKecRD3bFiZBFikhNauAPZRdz-FKp9w",
       authDomain: "ecommerce-fbaa8.firebaseapp.com",
       databaseURL: "https://ecommerce-fbaa8-default-rtdb.firebaseio.com",
       projectId: "ecommerce-fbaa8",
-      storageBucket: "ecommerce-fbaa8.appspot.com",
+      storageBucket: "ecommerce-fbaa8.firebasestorage.app",
       messagingSenderId: "296693502804",
       appId: "1:296693502804:web:d90e69e72e8983b753aec1"
     };
+
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-    const storage = getStorage(app);
+    const database = getDatabase(app);
 
-    function getParam(name) {
-      return new URL(window.location.href).searchParams.get(name);
+    // DOM Elements
+    const patientForm = document.getElementById("patientForm");
+    const prescriptionsData = document.getElementById("prescriptionsData");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const noPrescriptions = document.getElementById("noPrescriptions");
+
+    const modalPatientName = document.getElementById("modalPatientName");
+    const modalDoctorName = document.getElementById("modalDoctorName");
+    const modalMedication = document.getElementById("modalMedication");
+    const modalPrescribedDate = document.getElementById("modalPrescribedDate");
+    const prescriptionDetailsModal = new bootstrap.Modal(document.getElementById("prescriptionDetailsModal"));
+
+    // Helper: Format Date
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
     }
-    const patientId = getParam('patientId');
-    const form = document.getElementById('patientForm');
-    const statusDiv = document.getElementById('formStatus');
 
-    async function loadPatient() {
-      const snap = await get(ref(db, `patient_records/${patientId}`));
-      if (!snap.exists()) return;
-      const data = snap.val();
-      form.fullName.value = data.fullName || '';
-      form.age.value = data.age || '';
-      form.gender.value = data.gender || '';
-      form.address.value = data.address || '';
-      form.medicalHistory.value = data.medicalHistory || '';
-    }
-
-    form.addEventListener('submit', async e => {
+    // Save or Update Patient Info
+    patientForm.addEventListener("submit", function (e) {
       e.preventDefault();
-      statusDiv.textContent = '';
-      try {
-        let docURL = null;
-        const fileInput = document.getElementById('recordUpload');
-        if (fileInput.files.length) {
-          const file = fileInput.files[0];
-          const path = `patient_docs/${patientId}/${file.name}`;
-          const fileRef = storageRef(storage, path);
-          await uploadBytes(fileRef, file);
-          docURL = await getDownloadURL(fileRef);
-        }
-        const updates = {
-          fullName: form.fullName.value.trim(),
-          age: +form.age.value,
-          gender: form.gender.value,
-          address: form.address.value.trim(),
-          medicalHistory: form.medicalHistory.value.trim(),
-        };
-        if (docURL) updates.documentURL = docURL;
-        await update(ref(db, `patient_records/${patientId}`), updates);
-        statusDiv.innerHTML = '<div class="alert alert-success">Record updated!</div>';
-      } catch (err) {
-        console.error(err);
-        statusDiv.innerHTML = '<div class="alert alert-danger">Update failed. Try again.</div>';
-      }
+      const patientId = document.getElementById("patientId").value;
+      const name = document.getElementById("patientName").value.trim();
+      const age = document.getElementById("age").value.trim();
+      const gender = document.getElementById("gender").value;
+      const contact = document.getElementById("contact").value.trim();
+      const medicalHistory = document.getElementById("medicalHistory").value.trim();
+
+      const patientRef = ref(database, `patients/${patientId || Date.now()}`);
+      set(patientRef, {
+        name,
+        age,
+        gender,
+        contact,
+        medicalHistory
+      }).then(() => {
+        alert("Patient info saved successfully!");
+        patientForm.reset();
+        document.getElementById("patientId").value = "";
+        fetchPrescriptions(name); // Fetch prescriptions for this patient
+      }).catch(err => {
+        console.error("Error saving patient:", err);
+        alert("Failed to save patient info.");
+      });
     });
 
-    async function loadPrescriptions() {
-      const snap = await get(ref(db, 'prescriptions'));
-      document.getElementById('prescLoading').classList.add('d-none');
-      const body = document.getElementById('prescBody');
-      let found = false;
-      if (snap.exists()) {
-        snap.forEach(child => {
-          const p = child.val();
-          if (p.patientId === patientId) {
-            found = true;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${new Date(p.prescribedDate).toLocaleDateString()}</td>
-              <td>${p.doctorName}</td>
-              <td>${p.medication}</td>
-              <td>${p.notes||''}</td>
-            `;
-            body.appendChild(tr);
-          }
-        });
-      }
-      if (!found) {
-        document.getElementById('noPrescriptions').classList.remove('d-none');
-      } else {
-        document.getElementById('prescTableWrapper').classList.remove('d-none');
-      }
-    }
+    // Fetch Prescriptions for the Patient
+    function fetchPrescriptions(patientName) {
+      const prescriptionsRef = query(
+        ref(database, "prescriptions"),
+        orderByChild("patientName"),
+        equalTo(patientName)
+      );
 
-    if (!patientId) {
-      alert('Missing patientId in URL');
-    } else {
-      loadPatient();
-      loadPrescriptions();
+      loadingSpinner.classList.remove("d-none");
+      onValue(prescriptionsRef, (snapshot) => {
+        loadingSpinner.classList.add("d-none");
+        prescriptionsData.innerHTML = "";
+        if (!snapshot.exists()) {
+          noPrescriptions.classList.remove("d-none");
+          return;
+        }
+        noPrescriptions.classList.add("d-none");
+
+        snapshot.forEach((childSnap) => {
+          const data = childSnap.val();
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${data.medication}</td>
+            <td>${data.doctorName}</td>
+            <td>${formatDate(data.prescribedDate)}</td>
+            <td>
+              <button class="btn btn-sm btn-info view-prescription" data-id="${childSnap.key}">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </td>
+          `;
+          prescriptionsData.appendChild(row);
+        });
+
+        // View Prescription Modal
+        document.querySelectorAll(".view-prescription").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-id");
+            const prescriptionRef = ref(database, `prescriptions/${id}`);
+            onValue(prescriptionRef, (snap) => {
+              const data = snap.val();
+              modalPatientName.textContent = data.patientName;
+              modalDoctorName.textContent = data.doctorName;
+              modalMedication.textContent = data.medication;
+              modalPrescribedDate.textContent = formatDate(data.prescribedDate);
+              prescriptionDetailsModal.show();
+            });
+          });
+        });
+      });
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
